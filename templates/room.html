@@ -220,6 +220,7 @@ https://templatemo.com/tm-574-mexant
         <form id="post-form">
           {% csrf_token %}
           <input type="hidden" name="username" id="username" value="{{username}}" />
+          <input type="hidden" id="is_admin" value="{% if request.user.username == 'admin' %}1{% else %}0{% endif %}">
           <input type="hidden" name="room_id" id="room_id" value="{{room_details.id}}" />
           <input type="text" autocomplete="off" name="message" id="message" width="100px"
             style="width: 600px !important;" />
@@ -615,39 +616,78 @@ https://templatemo.com/tm-574-mexant
         type: 'GET',
         url: "/chat/getMessages/{{room}}/",
         success: function (response) {
-          // console.log(response.messages);
-          var msg = response.messages
-
-          var newmsg = msg.splice(msg.length - 5, msg.length - 1)
-          console.log(newmsg)
-
-          count++;
-          console.log(count)
+          // append new messages to display       
+          var msg = response.messages;
+          var isAdmin = $("#is_admin").val() === "1";
 
           $("#display").empty();
           $("#display-admin").empty();
 
-          for (var key in newmsg) {
-            var user = newmsg[key].user;
-            var text = newmsg[key].value;
+          /* =========================
+            ADMIN VIEW (10 messages)
+          ========================= */
+          if (isAdmin) {
 
-            var msgHtml =
-              "<div class='container darker'>" +
-                "<strong>" + user + ":</strong> " + text +
-              "</div>";
+            var last10 = msg.slice(-10);
 
-            // 1️⃣ Everyone sees messages in Fast Customer Support
-            // $("#display").append(msgHtml);
+            for (var i = 0; i < last10.length; i++) {
+              var user = last10[i].user;
+              var text = last10[i].value;
 
-            // 2️⃣ ONLY admin messages also appear in Fully Customizable
-            if (user === "admin") {
-              $("#display-admin").append(msgHtml);
+              var msgHtml =
+                "<div class='container darker'>" +
+                  "<strong>" + user + ":</strong> " + text +
+                "</div>";
+
+              if (user === "admin") {
+                $("#display-admin").append(msgHtml);
+              } else {
+                $("#display").append(msgHtml);
+              }
             }
-            else{
-              $("#display").append(msgHtml);
-            }
+
           }
 
+          /* =========================
+            USER VIEW (2 messages)
+          ========================= */
+          else {
+
+            var lastAdmin = null;
+            var lastUser = null;
+
+            // find latest admin + latest user message
+            for (var i = msg.length - 1; i >= 0; i--) {
+              if (!lastAdmin && msg[i].user === "admin") {
+                lastAdmin = msg[i];
+              }
+              if (!lastUser && msg[i].user !== "admin") {
+                lastUser = msg[i];
+              }
+              if (lastAdmin && lastUser) break;
+            }
+
+            // admin message → display-admin
+            if (lastAdmin) {
+              $("#display-admin").append(
+                "<div class='container darker'>" +
+                  "<strong>" + lastAdmin.user + ":</strong> " + lastAdmin.value +
+                "</div>"
+              );
+            }
+
+            // user message → display
+            if (lastUser) {
+              $("#display").append(
+                "<div class='container darker'>" +
+                  "<strong>" + lastUser.user + ":</strong> " + lastUser.value +
+                "</div>"
+              );
+            }
+
+          }
+
+          // check state for user status (online/offline)
           $("#display-state").empty();
           {
             $("#display-state").append(response.online);
