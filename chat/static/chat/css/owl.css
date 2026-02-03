@@ -205,3 +205,8 @@
   float: right;
   text-align: right;
 }
+
+.tooltip {
+  margin-left: 6px;
+}
+
