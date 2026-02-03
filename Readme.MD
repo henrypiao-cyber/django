@@ -1,0 +1,1 @@
+Enable 'django_session_timeout.middleware.SessionTimeoutMiddleware' for online mode
