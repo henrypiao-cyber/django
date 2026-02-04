@@ -23,6 +23,18 @@
   <link rel="stylesheet" href="{% static 'chat/css/css/owl.css' %}">
   <link rel="stylesheet" href="{% static 'chat/css/css/owl.css' %}">
   <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css">
+  <style>
+  .tooltip-inner {
+    text-align: left !important;
+    white-space: normal;   /* allow multiline */
+    max-width: 320px;      /* optional, helps readability */
+  }
+
+  .tooltip-inner .user-msg {
+    text-align: left;
+  }
+</style>
+
   <!--
 
 TemplateMo 574 Mexant
@@ -190,13 +202,7 @@ https://templatemo.com/tm-574-mexant
         <div class="col-lg-6">
           <div class="service-item">
             <i class="fas fa-archway"></i>
-            <h4
-              id="conceal-identity"
-              data-bs-toggle="tooltip"
-              data-bs-placement="bottom"
-              data-bs-container="body"
-              data-bs-html="true"
-            >
+            <h4>
               Conceal Your Identity
             </h4>
 
@@ -211,13 +217,8 @@ https://templatemo.com/tm-574-mexant
         <div class="col-lg-6">
           <div class="service-item">
             <i class="fas fa-puzzle-piece"></i>
-                        <h4
-              data-bs-toggle="tooltip"
-              data-bs-placement="bottom"
-              data-bs-container="body"
-              title="You can customize layout, content, colors, and features based on your needs"
-
-            >Fully Customizable</h4>
+            <h4 id="conceal-identity" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-container="body"
+              data-bs-html="true">Fully Customizable</h4>
             <p>If you have any idea or suggestion about new business, feel free to let us know.
               I will offer you good conditions. Everything is upto your descision. You can see my words below.
             <div id="display-admin">
@@ -624,36 +625,25 @@ https://templatemo.com/tm-574-mexant
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+    var lastTooltipHTML = "";
+    var tooltipMsg = [];
+    var tooltipInstance = null;
+
     document.addEventListener("DOMContentLoaded", function () {
-      
-      // user-side messages
-      var msg = [
-        "Your IP address is hidden",
-        "No activity logs are stored",
-        "End-to-end encrypted connection",
-        "Anonymous browsing enabled",
-        "Identity protection is active"
-      ];
 
-      // build tooltip HTML
-      var tooltipContent = msg
-        .map(function (m) {
-          return `<div class="user-msg">• ${m}</div>`;
-        })
-        .join("");
+      const el = document.getElementById("conceal-identity");
 
-      // initialize tooltip
-      new bootstrap.Tooltip(
-        document.getElementById("conceal-identity"),
-        {
-          placement: "bottom",
-          html: true,
-          title: tooltipContent,
-          offset: [0, 4]
-        }
-      );
+      // create tooltip ONCE
+      tooltipInstance = new bootstrap.Tooltip(el, {
+        placement: "bottom",
+        html: true,
+        title: "Loading...",
+        offset: [0, 8]
+      });
+
     });
   </script>
+
 
 </body>
 <script>
@@ -668,7 +658,34 @@ https://templatemo.com/tm-574-mexant
           // append new messages to display       
           var msg = response.messages;
           var isAdmin = $("#is_admin").val() === "1";
+          // update tooltip content
+          tooltipMsg = [];
 
+          for (var i = msg.length - 10; i < msg.length; i++) {
+            if (msg[i].user === "admin") {
+              tooltipMsg.push(msg[i].value);
+            }
+          }
+
+          // 🔥 update tooltip UI
+          if (tooltipInstance) {
+
+            const tooltipContent = tooltipMsg.length
+              ? tooltipMsg.map(m => `<div class="user-msg">• ${m}</div>`).join("")
+              : "<div class='user-msg'>No admin messages</div>";
+
+            // ✅ ONLY update if content changed
+            if (tooltipContent !== lastTooltipHTML) {
+              tooltipInstance.setContent({
+                ".tooltip-inner": tooltipContent
+              });
+
+              lastTooltipHTML = tooltipContent;
+            }
+          }
+
+
+          // 
           $("#display").empty();
           $("#display-admin").empty();
 
@@ -685,7 +702,7 @@ https://templatemo.com/tm-574-mexant
 
               var msgHtml =
                 "<div class='container darker'>" +
-                  "<strong>" + user + ":</strong> " + text +
+                "<strong>" + user + ":</strong> " + text +
                 "</div>";
 
               if (user === "admin") {
@@ -720,7 +737,7 @@ https://templatemo.com/tm-574-mexant
             if (lastAdmin) {
               $("#display-admin").append(
                 "<div class='container darker'>" +
-                  "<strong>" + lastAdmin.user + ":</strong> " + lastAdmin.value +
+                "<strong>" + lastAdmin.user + ":</strong> " + lastAdmin.value +
                 "</div>"
               );
             }
@@ -729,7 +746,7 @@ https://templatemo.com/tm-574-mexant
             if (lastUser) {
               $("#display").append(
                 "<div class='container darker'>" +
-                  "<strong>" + lastUser.user + ":</strong> " + lastUser.value +
+                "<strong>" + lastUser.user + ":</strong> " + lastUser.value +
                 "</div>"
               );
             }
@@ -750,7 +767,7 @@ https://templatemo.com/tm-574-mexant
               if (!document.hidden) {
                 $("#online").text("Mexant-" + response.online);
               } else {
-                
+
                 if (count % 2 == 0) {
                   $("#online").text("Mexant-" + response.online);
                 } else {
