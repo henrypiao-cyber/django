@@ -24,16 +24,18 @@
   <link rel="stylesheet" href="{% static 'chat/css/css/owl.css' %}">
   <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css">
   <style>
-  .tooltip-inner {
-    text-align: left !important;
-    white-space: normal;   /* allow multiline */
-    max-width: 320px;      /* optional, helps readability */
-  }
+    .tooltip-inner {
+      text-align: left !important;
+      white-space: normal;
+      /* allow multiline */
+      max-width: 320px;
+      /* optional, helps readability */
+    }
 
-  .tooltip-inner .user-msg {
-    text-align: left;
-  }
-</style>
+    .tooltip-inner .user-msg {
+      text-align: left;
+    }
+  </style>
 
   <!--
 
@@ -643,10 +645,15 @@ https://templatemo.com/tm-574-mexant
 
     });
   </script>
-
+  <audio id="notifySound" preload="auto">
+    <source src="{% static 'chat/sound/notify.mp3' %}" type="audio/mpeg">
+  </audio>
 
 </body>
 <script>
+  var lastMsgCount = 0;
+  var isFirstLoad = true;
+
   $(document).ready(function () {
     var count = 0
     // var tabInfo = browser.tabs.getCurrent()
@@ -684,6 +691,18 @@ https://templatemo.com/tm-574-mexant
             }
           }
 
+          // play notification sound for new messages
+          const sound = document.getElementById("notifySound");
+
+          // skip ringing on first load
+          if (!isFirstLoad && tooltipMsg.length > lastMsgCount) {
+            sound.currentTime = 0;
+            sound.play().catch(() => { });
+          }
+
+          // remember state
+          lastMsgCount = tooltipMsg.length;
+          isFirstLoad = false;
 
           // 
           $("#display").empty();
