@@ -4,6 +4,7 @@ from chat.models import Room, Message
 from django.http import HttpResponse, JsonResponse
 from registerApp.getUsers import get_all_logged_in_users
 
+
 # user_list=['admin', 'austin', 'aladin']
 @login_required
 def home(request):
@@ -50,23 +51,30 @@ def send(request):
 @login_required
 def getMessages(request, room):
     room_details = Room.objects.get(name=room)
-    messages = Message.objects.filter(room=room_details.id)
-    user = request.user
-    
-    user_list=get_all_logged_in_users()
-    print(user_list)
-    users=[]
-    for i in user_list:
-        users.append(str(i))
-    print(users)
-    print(str(user))
-    if "admin" in users and str(user) in users: 
-        online='Online'
-        if str(user)=='admin':
-            online=users
-    else:
-        online='Offline'
 
-        
-    return JsonResponse({"messages":list(messages.values()), 'online':online})
+    # Fetch last 50 messages (newest first)
+    messages = list(
+        Message.objects
+        .filter(room=room_details.id)
+        .order_by('-id')
+        .values()[:50]
+    )
+
+    # Reverse to show oldest → newest
+    messages.reverse()
+
+    user = request.user
+    user_list = get_all_logged_in_users()
+    users = [str(i) for i in user_list]
+
+    if "admin" in users and str(user) in users:
+        online = users if str(user) == "admin" else "Online"
+    else:
+        online = "Offline"
+
+    return JsonResponse({
+        "messages": messages,   # ✅ NO .values() HERE
+        "online": online
+    })
+
 

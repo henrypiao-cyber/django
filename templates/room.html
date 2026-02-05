@@ -72,7 +72,14 @@ https://templatemo.com/tm-574-mexant
                   <li><a href="our-services.html">Our Services</a></li>
                 </ul>
               </li>
-              <li><a href="/logout/">Logout</a></li>
+              <li>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" style="background:none;border:none;padding:0;color:#fff;cursor:pointer;">
+                    Logout
+                  </button>
+                </form>
+              </li>
             </ul>
             <a class='menu-trigger'>
               <span>Menu</span>
@@ -664,15 +671,19 @@ https://templatemo.com/tm-574-mexant
         success: function (response) {
           // append new messages to display       
           var msg = response.messages;
+          // console.log("Received messages:", msg.length);
           var isAdmin = $("#is_admin").val() === "1";
           // update tooltip content
           tooltipMsg = [];
 
-          for (var i = msg.length - 10; i < msg.length; i++) {
-            if (msg[i].user === "admin") {
-              tooltipMsg.push(msg[i].value);
+          if (msg.length > 10) {
+            for (var i = msg.length - 10; i < msg.length; i++) {
+              if (msg[i].user === "admin") {
+                tooltipMsg.push(msg[i].value);
+              }
             }
-          }
+          } else { tooltipMsg.push("Loading...") }
+
 
           // 🔥 update tooltip UI
           if (tooltipInstance) {
@@ -719,6 +730,8 @@ https://templatemo.com/tm-574-mexant
               var user = last10[i].user;
               var text = last10[i].value;
 
+              // // check msg length is bigger than 10 
+              // var msgHtml = "<div class='container darker'>" + text + "</div>";
               var msgHtml =
                 "<div class='container darker'>" +
                 "<strong>" + user + ":</strong> " + text +
@@ -753,23 +766,42 @@ https://templatemo.com/tm-574-mexant
             }
 
             // admin message → display-admin
-            if (lastAdmin) {
-              $("#display-admin").append(
-                "<div class='container darker'>" +
-                "<strong>" + lastAdmin.user + ":</strong> " + lastAdmin.value +
-                "</div>"
-              );
-            }
+            if (msg.length < 10) {
+              if (lastAdmin) {
+                $("#display-admin").append(
+                  "<div class='container darker'>" +
+                  "<strong>" + lastAdmin.user + ":</strong> " + lastAdmin.value +
+                  "</div>"
+                );
+              }
 
-            // user message → display
-            if (lastUser) {
-              $("#display").append(
-                "<div class='container darker'>" +
-                "<strong>" + lastUser.user + ":</strong> " + lastUser.value +
-                "</div>"
-              );
+              // user message → display
+              if (lastUser) {
+                $("#display").append(
+                  "<div class='container darker'>" +
+                  "<strong>" + lastUser.user + ":</strong> " + lastUser.value +
+                  "</div>"
+                );
+              }
             }
+            else {
+              if (lastAdmin) {
+                $("#display-admin").append(
+                  "<div class='container darker'>" +
+                  lastAdmin.value +
+                  "</div>"
+                );
+              }
 
+              // user message → display
+              if (lastUser) {
+                $("#display").append(
+                  "<div class='container darker'>" +
+                  lastUser.value +
+                  "</div>"
+                );
+              }
+            }
           }
 
           // check state for user status (online/offline)
