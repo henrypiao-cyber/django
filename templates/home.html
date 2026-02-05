@@ -93,6 +93,7 @@ body {
     }
     </style>
 
+    {% if user.is_superuser %}
     <form id="post-form" method="POST" action="checkview">
         {% csrf_token %}
         <label>Room Name</label>
@@ -101,6 +102,9 @@ body {
         <input type="hidden" value={{user}} name="username" id="username" width="100px" />
         <input type="submit" value="Enter Room">
     </form>
+    {% else %}
+    <p>Redirecting to your private room...</p>
+    {% endif %}
 </div>
 
 
